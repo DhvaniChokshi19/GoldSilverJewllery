@@ -63,7 +63,7 @@ const SignupPage = () => {
       });
       if (response.data.success) {
         localStorage.setItem("token", response.data.token);
-        localStorage.setItem("token", JSON.stringify(response.data.user));
+        localStorage.setItem("user", JSON.stringify(response.data.user));
         alert("Registration successfull!");
         navigate("/");
       }
@@ -76,72 +76,98 @@ const SignupPage = () => {
     }
   };
   return (
-    <div className="signup-page">
-      <div className="sgnup-container ">
-        <div className="rightside w-1/2">
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label htmlFor="username">Username</label>
+    <div className="min-h-[75vh] flex justify-content-center align-items-center t-0">
+      <div className="w-full max-w-[950px] flex items-center m-auto gap-2 border-1 border-amber-500 shadow-xl p-5">
+        <div className="rightside w-1/2 ">
+          <img className="rounded-xs" src={rightimg} alt="" />
+        </div>
+        <div className="leftside bg-white w-1/2 p-8 rounded-2xl shadow-amber-100 animate-[slideUp_0.5s_ease-out_forwards] align-items-center">
+          <form onSubmit={handleSubmit} className="mb-5 flex flex-wrap gap-3">
+            <div className="form-group flex flex-col gap-0">
+              <label
+                htmlFor="username"
+                className="text-md text-amber-950 font-light"
+              >
+                Username
+              </label>
               <input
+                className="w-44 border-b-2 border-gray-400 duration-300 focus:outline-0"
                 type="text"
                 id="username"
                 name="username"
-                placeholder="Username"
                 value={formData.username}
                 onChange={handleChange}
                 required
               ></input>
             </div>
-            <div className="form-group">
-              <label htmlFor="username">Mobile Number</label>
+            <div className="form-group flex flex-col gap-0 ">
+              <label
+                htmlFor="username"
+                className="text-md text-amber-950 font-light"
+              >
+                Mobile Number
+              </label>
               <input
+                className="w-44 border-b-2 border-gray-400 duration-300 focus:outline-0"
                 type="text"
                 id="mobile"
                 name="mobile"
-                placeholder="Enter mobile number"
                 value={formData.mobile}
                 onChange={handleChange}
                 maxLength="10"
                 required
               ></input>
             </div>
-            <div className="form-group">
-              <label htmlFor="username">Password</label>
+            <div className="form-group flex flex-col gap-0 ">
+              <label
+                htmlFor="username"
+                className="text-md text-amber-950 font-light"
+              >
+                Create Password
+              </label>
               <input
+                className="w-96  border-b-2 border-gray-400 duration-300 focus:outline-0"
                 type="password"
                 id="password"
                 name="password"
-                placeholder="Create password (min 6 characters)"
                 value={formData.password}
                 onChange={handleChange}
                 required
               ></input>
             </div>
-            <div className="form-group">
-              <label htmlFor="username">Confirm Password</label>
+            <div className="form-group flex flex-col gap-0">
+              <label
+                htmlFor="username"
+                className="text-md text-amber-950 font-light"
+              >
+                Confirm Password
+              </label>
               <input
+                className="w-96 border-b-2 font-extralight border-gray-400 focus:outline-0 duration-300"
                 type="password"
                 id="confirmpassword"
-                name="confirmpassword"
-                placeholder="Confirm Password"
+                name="confirmPassword"
+                placeholder="min 6 characters"
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
               ></input>
             </div>
-            {error & <div className="error-message">{error}</div>}
-            <button type="submit" className="btn-primary" disabled={loading}>
-              {loading ? 'Creating Account' : 'Sign Up'}
+            {/* {error & <div className="error-message">{error}
+            </div>} */}
+            <button  type="submit" className="p-2 btn-primary bg-yellow-600 text-amber-100 font-bold text-lg 
+            mt-10 w-44 border-2 rounded-lg align-items-center 
+            transition-all 
+               disabled:opacity-50 
+               hover:enabled:-translate-y-0.5 
+               hover:enabled:shadow-[0_6px_20px_rgba(245,175,25,0.4)]" disabled={loading}>
+              {loading ? "Creating Account" : "Sign Up"}
             </button>
           </form>
-
-          <p className="switch-auth">
-            Already have an account?{' '} 
-            <span onClick={() => navigate('/login')}>Login here</span>
+          <p className="t-0 switch-auth text-sm font-extralight">
+            Already have an account?{" "}
+            <span onClick={() => navigate("/login")}>Login here</span>
           </p>
-        </div>
-        <div className="leftside w-1/2">
-          <img className="w-10 h-10" src={rightimg} alt="" />
         </div>
       </div>
     </div>

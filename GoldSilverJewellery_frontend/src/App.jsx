@@ -3,7 +3,15 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import HomePage from "./Pages/HomePage";
 import Header from "./Components/Header";
 import SignupPage from "./Pages/SignupPage";
-import { LogIn } from "lucide-react";
+import LoginPage from "./Pages/LoginPage";
+import { Navigate } from "react-router-dom";
+
+// const ProtectedRoute = ({children}) => {
+//   const token = localStorage.getItem('token');
+//   return token ? children : <Navigate to= "/login" />
+// };
+
+
 const App = () => {
   return (
     <BrowserRouter>
@@ -11,7 +19,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<HomePage />}></Route>
         <Route path="/signup" element = {<SignupPage />}></Route>
-        <Route path="/login" element = {<LogIn />}></Route>
+        <Route path="/login" element = {<LoginPage />}></Route>
       </Routes>
     </BrowserRouter>
   );

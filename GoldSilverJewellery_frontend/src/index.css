@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+/* index.css */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@theme{
+    --font-display: "Poppins", serif;
+}
