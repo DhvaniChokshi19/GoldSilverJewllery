@@ -4,9 +4,14 @@ if (mongoose.models.User) {
 }
 const userSchema = new mongoose.Schema(
   {
-    username: { type: String, required: true, unique: true },
-    mobile: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    username: { type: String, unique: true},
+    mobile: { type: String, unique: true},
+    password: { type: String },
+    googleId: { type: String,unique: true, sparse: true},
+    name: {type: String},
+    email: {type: String, unique: true, sparse: true},
+    picture: {type: String},
+    authProvider: {type: String, enum: ["local","google"], default: "local"},
   },
   {
     timestamps: true,

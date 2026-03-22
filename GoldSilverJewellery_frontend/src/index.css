@@ -6,6 +6,17 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
-@theme{
-    --font-display: "Poppins", serif;
+@theme {
+  --font-display: "Poppins", sans-serif;
+  --font-heading: "Playfair Display", serif;  
+  --font-body: "Lato", sans-serif;           
+}
+
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+  p, span, li {
+    font-family: var(--font-body);
+  }
 }

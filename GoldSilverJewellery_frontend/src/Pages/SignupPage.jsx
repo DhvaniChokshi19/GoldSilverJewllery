@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import axiosInstance from "../api/axios";
 import rightimg from "../assets/bg1.jpg";
+import { GoogleLogin } from "@react-oauth/google";
 const SignupPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -65,6 +66,7 @@ const SignupPage = () => {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
         alert("Registration successfull!");
+        localStorage.setItem("isLoggedIn", "true");
         navigate("/");
       }
     } catch (err) {
@@ -75,6 +77,25 @@ const SignupPage = () => {
       setLoading(false);
     }
   };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      const response = await axiosInstance.post("/api/google", {
+        credential: credentialResponse.credential,
+      });
+      if (response.data.success) {
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        localStorage.setItem("isLoggedIn", "true");
+        alert("Registration Successful");
+        navigate("/");
+      }
+    } catch (err) {
+      setError(
+        err.message?.data?.message || "Google signup failed. Please try again",
+      );
+    }
+  };
   return (
     <div className="min-h-[75vh] flex justify-content-center align-items-center t-0">
       <div className="w-full max-w-[950px] flex items-center m-auto gap-2 border-1 border-amber-500 shadow-xl p-5">
@@ -83,7 +104,7 @@ const SignupPage = () => {
         </div>
         <div className="leftside bg-white w-1/2 p-8 rounded-2xl shadow-amber-100 animate-[slideUp_0.5s_ease-out_forwards] align-items-center">
           <form onSubmit={handleSubmit} className="mb-5 flex flex-wrap gap-3">
-            <div className="form-group flex flex-col gap-0">
+            <div className="flex flex-col gap-0">
               <label
                 htmlFor="username"
                 className="text-md text-amber-950 font-light"
@@ -153,17 +174,41 @@ const SignupPage = () => {
                 required
               ></input>
             </div>
-            {/* {error & <div className="error-message">{error}
-            </div>} */}
-            <button  type="submit" className="p-2 btn-primary bg-yellow-600 text-amber-100 font-bold text-lg 
+            {error && (
+              <div className="w-full p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm">
+                {error}
+              </div>
+            )}
+            <button
+              type="submit"
+              className="p-2 btn-primary bg-yellow-600 text-amber-100 font-bold text-lg 
             mt-10 w-44 border-2 rounded-lg align-items-center 
             transition-all 
                disabled:opacity-50 
                hover:enabled:-translate-y-0.5 
-               hover:enabled:shadow-[0_6px_20px_rgba(245,175,25,0.4)]" disabled={loading}>
+               hover:enabled:shadow-[0_6px_20px_rgba(245,175,25,0.4)]"
+              disabled={loading}
+            >
               {loading ? "Creating Account" : "Sign Up"}
             </button>
           </form>
+          <div className="flex items-center gap-3 my-3 w-full">
+            <hr className="flex-1 border-gray-300" />
+            <span className="text-sm text-gray-400 font-light">
+              or sign up with
+            </span>
+            <hr className="flex-1 border-gray-300" />
+          </div>
+          <div className="flex justify-center mt-2">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setError("Google sign-up failed")}
+              text="signup_with"
+              shape="rectangular"
+              theme="outline"
+            />
+          </div>
+
           <p className="t-0 switch-auth text-sm font-extralight">
             Already have an account?{" "}
             <span onClick={() => navigate("/login")}>Login here</span>

@@ -4,7 +4,7 @@ import HomePage from "./Pages/HomePage";
 import Header from "./Components/Header";
 import SignupPage from "./Pages/SignupPage";
 import LoginPage from "./Pages/LoginPage";
-import { Navigate } from "react-router-dom";
+import AdminPanel from "./Pages/admin/adminPanel";
 
 // const ProtectedRoute = ({children}) => {
 //   const token = localStorage.getItem('token');
@@ -20,6 +20,7 @@ const App = () => {
         <Route path="/" element={<HomePage />}></Route>
         <Route path="/signup" element = {<SignupPage />}></Route>
         <Route path="/login" element = {<LoginPage />}></Route>
+        <Route path="/admin" element = {<AdminPanel />}></Route>
       </Routes>
     </BrowserRouter>
   );
