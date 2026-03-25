@@ -47,14 +47,23 @@ export const getAllProductsAdmin = async (req, res) => {
   }
 };
 
-// GET by category — admin
+// GET by category — admin (includes products with or without subCategory)
 export const getProductsByCategoryAdmin = async (req, res) => {
   try {
-    const data = await Product.find({ categoryId: req.params.categoryId }).sort(
-      {
-        createdAt: -1,
-      },
-    );
+    const data = await Product.find({ categoryId: req.params.categoryId })
+      .populate("subCategoryId", "name")
+      .sort({ createdAt: -1 });
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// GET by subCategory — admin
+export const getProductsBySubCategoryAdmin = async (req, res) => {
+  try {
+    const data = await Product.find({ subCategoryId: req.params.subCategoryId })
+      .sort({ createdAt: -1 });
     res.json({ success: true, data });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
@@ -74,12 +83,24 @@ export const getProductsByCategory = async (req, res) => {
   }
 };
 
+// GET by subCategory — storefront
+export const getProductsBySubCategory = async (req, res) => {
+  try {
+    const data = await Product.find({ subCategoryId: req.params.subCategoryId, isVisible: true })
+      .sort({ createdAt: -1 });
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 // GET single
 export const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
       .populate("collectionId", "name")
-      .populate("categoryId", "name label");
+      .populate("categoryId", "name label")
+      .populate("subCategoryId", "name label");
     if (!product)
       return res.status(404).json({ success: false, message: "Not found" });
     res.json({ success: true, data: product });
@@ -94,6 +115,7 @@ export const createProduct = async (req, res) => {
     const {
       collectionId,
       categoryId,
+      subCategoryId,
       name,
       label,
       productCode,
@@ -116,6 +138,7 @@ export const createProduct = async (req, res) => {
     const product = await Product.create({
       collectionId,
       categoryId,
+      subCategoryId: subCategoryId || null,
       name,
       label: label || "",
       productCode: productCode || "",
@@ -143,6 +166,7 @@ export const updateProduct = async (req, res) => {
     const {
       collectionId,
       categoryId,
+      subCategoryId,
       name,
       label,
       productCode,
@@ -177,6 +201,7 @@ export const updateProduct = async (req, res) => {
       {
         collectionId,
         categoryId,
+        subCategoryId: subCategoryId || null,
         name,
         label: label || "",
         productCode: productCode || "",
