@@ -135,14 +135,38 @@ function CollectionsPanel({ onSelect, showToast }) {
     } catch (err) { showToast(err.response?.data?.message || "Error", "error"); }
   };
 
+  const [seeding, setSeeding] = useState(false);
+  const handleSeed = async () => {
+    if (!window.confirm("Populate standard product list (39 items) into Collections, Categories & SubCategories?")) return;
+    setSeeding(true);
+    try {
+      const { data } = await axiosInstance.post("/api/collections/seed");
+      if (data.success) {
+        showToast(`Product list entries created successfully!`);
+        load();
+      } else {
+        showToast(data.message || "Failed to populate list", "error");
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || "Error populating list", "error");
+    } finally {
+      setSeeding(false);
+    }
+  };
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h2 className="text-2xl font-normal" style={{ color: "#2c1a0e" }}>Collections</h2>
           <p className="text-xs mt-0.5" style={{ color: "#8b6b4a" }}>Gold, Silver, Platinum…</p>
         </div>
-        <button onClick={openNew} className="px-4 py-2 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition" style={{ background: "#7c4a1e" }}>+ New Collection</button>
+        <div className="flex items-center gap-2">
+          <button onClick={handleSeed} disabled={seeding} className="px-4 py-2 rounded-xl text-sm font-semibold bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300 transition disabled:opacity-50">
+            {seeding ? "Populating..." : "⚡ Populate Product List (39 Items)"}
+          </button>
+          <button onClick={openNew} className="px-4 py-2 rounded-xl text-sm font-semibold text-white hover:opacity-90 transition" style={{ background: "#7c4a1e" }}>+ New Collection</button>
+        </div>
       </div>
 
       {showForm && (
@@ -172,7 +196,12 @@ function CollectionsPanel({ onSelect, showToast }) {
                   <p className={`font-bold text-xl ${s.text}`}>{col.name}</p>
                   <Badge visible={col.isVisible} onToggle={() => toggleVis(col._id)} />
                 </div>
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex items-center gap-2 text-xs font-semibold text-amber-900/80 flex-wrap">
+                  <span className="bg-white/60 px-2.5 py-1 rounded-lg">📂 {col.categoryCount ?? 0} Categories</span>
+                  <span className="bg-white/60 px-2.5 py-1 rounded-lg">📁 {col.subCategoryCount ?? 0} Sub Categories</span>
+                  <span className="bg-white/60 px-2.5 py-1 rounded-lg">📦 {col.productCount ?? 0} Products</span>
+                </div>
+                <div className="flex gap-2 flex-wrap mt-1">
                   <button onClick={() => onSelect(col)} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/80 hover:bg-white text-amber-900 transition">📂 Categories</button>
                   <button onClick={() => openEdit(col)} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/60 border border-white/60 text-amber-800 hover:bg-white transition">Edit</button>
                   <button onClick={() => del(col._id)} className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/60 border border-red-200 text-red-600 hover:bg-red-50 transition">Delete</button>
@@ -299,10 +328,6 @@ function CategoriesPanel({ collection, onSelect, onBack, showToast }) {
   </label>
   <input id="cat-img" ref={fileRef} type="file" accept="image/*" onChange={onFile} className="hidden" />
 </div>
-            <div className="flex flex-col gap-1">
-              <Label text="Order" />
-              <input type="number" name="order" value={form.order} onChange={onChange} min={0} className={cls} />
-            </div>
             <div className="flex items-center gap-3 mt-5">
               <input type="checkbox" name="isVisible" id="cat-vis" checked={form.isVisible} onChange={onChange} className="w-4 h-4 accent-amber-700" />
               <label htmlFor="cat-vis" className="text-sm text-amber-900">Visible on storefront</label>
@@ -328,7 +353,7 @@ function CategoriesPanel({ collection, onSelect, onBack, showToast }) {
           <table className="w-full text-sm">
             <thead>
               <tr style={{ background: "#fdf3e3" }}>
-                {["Preview", "Name / Label", "Order", "Visible", "Actions"].map(h => (
+                {["Preview", "Name / Label", "No. of Sub Category", "No. of Products", "Visible", "Actions"].map(h => (
                   <th key={h} className="text-left px-5 py-3.5 text-xs font-semibold text-amber-800 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
@@ -346,7 +371,8 @@ function CategoriesPanel({ collection, onSelect, onBack, showToast }) {
                     </div>
                   </td>
                   <td className="px-5 py-3"><p className="font-semibold text-amber-900">{cat.name}</p><p className="text-xs text-amber-500">{cat.label}</p></td>
-                  <td className="px-5 py-3 text-amber-700">{cat.order}</td>
+                  <td className="px-5 py-3 font-semibold text-amber-900">{cat.subCategoryCount ?? 0}</td>
+                  <td className="px-5 py-3 font-semibold text-amber-900">{cat.productCount ?? 0}</td>
                   <td className="px-5 py-3"><Badge visible={cat.isVisible} onToggle={() => toggleVis(cat._id)} /></td>
                   <td className="px-5 py-3">
                     <div className="flex gap-2 flex-wrap">
@@ -357,7 +383,7 @@ function CategoriesPanel({ collection, onSelect, onBack, showToast }) {
                   </td>
                 </tr>
               ))}
-              {list.length === 0 && <tr><td colSpan={5} className="text-center py-12 text-amber-300">No categories yet.</td></tr>}
+              {list.length === 0 && <tr><td colSpan={6} className="text-center py-12 text-amber-300">No categories yet.</td></tr>}
             </tbody>
           </table>
         </div>
@@ -518,7 +544,7 @@ function SubCategoriesPanel({ collection, category, onSelectSub, onAddProduct, o
           <table className="w-full text-sm">
             <thead>
               <tr style={{ background: "#fdf3e3" }}>
-                {["Preview", "Name / Label","Visible", "Actions"].map(h => (
+                {["Preview", "Name / Label", "No. of Products", "Visible", "Actions"].map(h => (
                   <th key={h} className="text-left px-5 py-3.5 text-xs font-semibold text-amber-800 uppercase tracking-wider">{h}</th>
                 ))}
               </tr>
@@ -536,7 +562,7 @@ function SubCategoriesPanel({ collection, category, onSelectSub, onAddProduct, o
                     </div>
                   </td>
                   <td className="px-5 py-3"><p className="font-semibold text-amber-900">{sub.name}</p><p className="text-xs text-amber-500">{sub.label}</p></td>
-                  <td className="px-5 py-3 text-amber-700">{sub.order}</td>
+                  <td className="px-5 py-3 font-semibold text-amber-900">{sub.productCount ?? 0}</td>
                   <td className="px-5 py-3"><Badge visible={sub.isVisible} onToggle={() => toggleVis(sub._id)} /></td>
                   <td className="px-5 py-3">
                     <div className="flex gap-2 flex-wrap">
@@ -793,10 +819,221 @@ function ProductsPanel({ collection, category, subCategory, onBack, showToast })
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// ROOT — manages navigation between all 4 levels
+// Rates Panel
 // ════════════════════════════════════════════════════════════════════════════
+function RatesPanel({ showToast }) {
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    gold24k: 7450,
+    gold22k: 6830,
+    gold18k: 5590,
+    gold14k: 4350,
+    silver999: 89,
+    silver925: 82,
+    gold24kChange: 0.45,
+    silver999Change: -0.12
+  });
+
+  const loadRates = async () => {
+    try {
+      const { data } = await axiosInstance.get("/api/rates/get");
+      if (data.success && data.data) {
+        setForm({
+          gold24k: data.data.gold24k,
+          gold22k: data.data.gold22k,
+          gold18k: data.data.gold18k,
+          gold14k: data.data.gold14k,
+          silver999: data.data.silver999,
+          silver925: data.data.silver925,
+          gold24kChange: data.data.gold24kChange || 0,
+          silver999Change: data.data.silver999Change || 0
+        });
+      }
+    } catch {
+      showToast("Using default rate parameters", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadRates();
+  }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: parseFloat(value) || 0 }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const { data } = await axiosInstance.post("/api/rates/update", form);
+      if (data.success) {
+        showToast("Live bullion rates updated successfully!");
+      } else {
+        showToast(data.message || "Failed to update rates", "error");
+      }
+    } catch (err) {
+      showToast("Error saving rate updates", "error");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-md border border-amber-100 p-6">
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-amber-100">
+        <div>
+          <h2 className="text-2xl font-semibold text-amber-950">Daily Bullion Rates Control</h2>
+          <p className="text-xs text-amber-700 mt-1">
+            Update base prices per gram. All site price calculations update automatically.
+          </p>
+        </div>
+        <button
+          onClick={loadRates}
+          className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 transition"
+        >
+          🔄 Refresh Rates
+        </button>
+      </div>
+
+      {loading ? (
+        <Spinner />
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* Gold Rates */}
+            <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-200 space-y-3">
+              <h3 className="font-bold text-amber-900 text-sm flex items-center gap-1">
+                ✨ Gold Rates (₹ per gram)
+              </h3>
+
+              <div>
+                <Label text="24K Pure Gold (999) *" />
+                <input
+                  type="number"
+                  name="gold24k"
+                  value={form.gold24k}
+                  onChange={handleChange}
+                  required
+                  className={cls}
+                />
+              </div>
+
+              <div>
+                <Label text="22K Standard Gold (916) *" />
+                <input
+                  type="number"
+                  name="gold22k"
+                  value={form.gold22k}
+                  onChange={handleChange}
+                  required
+                  className={cls}
+                />
+              </div>
+
+              <div>
+                <Label text="18K Hallmarked Gold (750) *" />
+                <input
+                  type="number"
+                  name="gold18k"
+                  value={form.gold18k}
+                  onChange={handleChange}
+                  required
+                  className={cls}
+                />
+              </div>
+
+              <div>
+                <Label text="14K Gold (585) *" />
+                <input
+                  type="number"
+                  name="gold14k"
+                  value={form.gold14k}
+                  onChange={handleChange}
+                  required
+                  className={cls}
+                />
+              </div>
+
+              <div>
+                <Label text="24K Market Change %" />
+                <input
+                  type="number"
+                  step="0.01"
+                  name="gold24kChange"
+                  value={form.gold24kChange}
+                  onChange={handleChange}
+                  className={cls}
+                />
+              </div>
+            </div>
+
+            {/* Silver Rates */}
+            <div className="bg-slate-50/70 p-4 rounded-xl border border-slate-200 space-y-3">
+              <h3 className="font-bold text-slate-800 text-sm flex items-center gap-1">
+                💎 Silver Rates (₹ per gram)
+              </h3>
+
+              <div>
+                <Label text="999 Fine Silver *" />
+                <input
+                  type="number"
+                  name="silver999"
+                  value={form.silver999}
+                  onChange={handleChange}
+                  required
+                  className={cls}
+                />
+              </div>
+
+              <div>
+                <Label text="925 Sterling Silver *" />
+                <input
+                  type="number"
+                  name="silver925"
+                  value={form.silver925}
+                  onChange={handleChange}
+                  required
+                  className={cls}
+                />
+              </div>
+
+              <div>
+                <Label text="Silver Market Change %" />
+                <input
+                  type="number"
+                  step="0.01"
+                  name="silver999Change"
+                  value={form.silver999Change}
+                  onChange={handleChange}
+                  className={cls}
+                />
+              </div>
+            </div>
+
+          </div>
+
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full py-3 rounded-xl font-bold text-white shadow hover:opacity-90 transition disabled:opacity-50"
+            style={{ background: "#7c4a1e" }}
+          >
+            {saving ? "Updating Live Rates..." : "Save & Publish Bullion Rates"}
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}
+
 export default function AdminPanel() {
-  const [view, setView]                   = useState("collections");
+  const [view, setView]                   = useState("collections"); // "collections" | "categories" | "subcategories" | "products" | "rates"
   const [selCollection, setSelCollection] = useState(null);
   const [selCategory, setSelCategory]     = useState(null);
   const [selSubCategory, setSelSubCategory] = useState(null); // null = direct to category
@@ -810,8 +1047,8 @@ export default function AdminPanel() {
   const goCollections  = () => { setView("collections"); setSelCollection(null); setSelCategory(null); setSelSubCategory(null); };
   const goCategories   = (col) => { setSelCollection(col); setView("categories"); };
   const goSubCategories = (cat) => { setSelCategory(cat); setView("subcategories"); };
-  // subCat = null means products are added directly to a category (no subcategory)
   const goProducts     = (subCat) => { setSelSubCategory(subCat); setView("products"); };
+  const goRates        = () => { setView("rates"); };
   const backToSubs     = () => { setView("subcategories"); setSelSubCategory(null); };
   const backToCats     = () => { setView("categories"); setSelCategory(null); setSelSubCategory(null); };
 
@@ -826,11 +1063,13 @@ export default function AdminPanel() {
           <span className="font-bold text-amber-900 text-xl">Jewellery Admin</span>
           <span className="text-amber-200 mx-2 text-xl">|</span>
           <button onClick={goCollections} className={`px-3 py-1.5 rounded-lg text-sm transition ${view === "collections" ? "bg-amber-100 text-amber-900 font-semibold" : "text-amber-500 hover:text-amber-900"}`}>Collections</button>
+          <button onClick={goRates} className={`px-3 py-1.5 rounded-lg text-sm transition ${view === "rates" ? "bg-amber-100 text-amber-900 font-semibold" : "text-amber-500 hover:text-amber-900"}`}>Live Rates</button>
           {selCollection && (<><span className="text-amber-300">›</span><button onClick={() => goCategories(selCollection)} className={`px-3 py-1.5 rounded-lg text-sm transition ${view === "categories" ? "bg-amber-100 text-amber-900 font-semibold" : "text-amber-500 hover:text-amber-900"}`}>{selCollection.name}</button></>)}
           {selCategory   && (<><span className="text-amber-300">›</span><button onClick={() => goSubCategories(selCategory)} className={`px-3 py-1.5 rounded-lg text-sm transition ${view === "subcategories" ? "bg-amber-100 text-amber-900 font-semibold" : "text-amber-500 hover:text-amber-900"}`}>{selCategory.name}</button></>)}
           {view === "products" && (<><span className="text-amber-300">›</span><span className="px-3 py-1.5 rounded-lg bg-amber-100 text-amber-900 font-semibold text-sm">{selSubCategory ? selSubCategory.name : "Direct Products"}</span></>)}
         </div>
 
+        {view === "rates"        && <RatesPanel showToast={showToast} />}
         {view === "collections"  && <CollectionsPanel onSelect={goCategories} showToast={showToast} />}
         {view === "categories"   && selCollection && <CategoriesPanel collection={selCollection} onSelect={goSubCategories} onBack={goCollections} showToast={showToast} />}
         {view === "subcategories"&& selCollection && selCategory && (

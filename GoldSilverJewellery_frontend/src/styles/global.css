@@ -1,0 +1,82 @@
+@import "./tokens.css";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GLOBAL STYLES & REUSABLE THEME UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+/* Theme Utilities */
+.bg-theme-page {
+  background-color: var(--bg-primary);
+}
+
+.bg-theme-card {
+  background-color: var(--bg-surface);
+}
+
+.bg-theme-hover {
+  background-color: var(--bg-surface-hover);
+}
+
+.text-theme-primary {
+  color: var(--text-primary);
+}
+
+.text-theme-secondary {
+  color: var(--text-secondary);
+}
+
+.text-theme-muted {
+  color: var(--text-muted);
+}
+
+.text-theme-gold {
+  color: var(--text-gold);
+}
+
+.border-theme {
+  border-color: var(--border-color);
+}
+
+.card-theme {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  box-shadow: var(--card-shadow);
+  border-radius: 1rem;
+}
+
+.card-theme:hover {
+  border-color: var(--border-color-hover);
+}
+
+.badge-gold {
+  background-color: var(--badge-gold-bg);
+  color: var(--badge-gold-text);
+  border: 1px solid var(--badge-gold-border);
+}
+
+.badge-emerald {
+  background-color: var(--badge-emerald-bg);
+  color: var(--badge-emerald-text);
+  border: 1px solid var(--badge-emerald-border);
+}
+
+/* Gold Gradient Text */
+.gold-gradient-text {
+  background: var(--accent-gold-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

@@ -1,22 +1,178 @@
 @import "tailwindcss";
+@import "./styles/global.css";
 
-/* index.css */
+/* ─── Premium Font Theme + Muted Gold Palette ─────────────── */
+@theme {
+  --font-heading: "Cormorant Garamond", "Playfair Display", Georgia, serif;
+  --font-body: "DM Sans", "Lato", system-ui, sans-serif;
+  --font-gujarati: "Noto Sans Gujarati", "DM Sans", sans-serif;
+
+  /* Override Tailwind's amber palette → warm muted gold */
+  --color-amber-50:  #faf7f2;
+  --color-amber-100: #f0e6d3;
+  --color-amber-200: #dfc9a0;
+  --color-amber-300: #cdb07c;
+  --color-amber-400: #b8945f;
+  --color-amber-500: #a07d4e;
+  --color-amber-600: #886a40;
+  --color-amber-700: #6d5535;
+  --color-amber-800: #574530;
+  --color-amber-900: #3d3025;
+  --color-amber-950: #2a1f18;
+}
+
+/* ─── Base Fonts ──────────────────────────────────────────── */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+  }
+  body, p, span, li, button, input, select, textarea, a, label {
+    font-family: var(--font-body);
+  }
+  [data-lang="gu"] body,
+  [data-lang="gu"] p,
+  [data-lang="gu"] span,
+  [data-lang="gu"] li,
+  [data-lang="gu"] button,
+  [data-lang="gu"] input,
+  [data-lang="gu"] a,
+  [data-lang="gu"] label,
+  [data-lang="gu"] h1,
+  [data-lang="gu"] h2,
+  [data-lang="gu"] h3,
+  [data-lang="gu"] h4,
+  [data-lang="gu"] h5,
+  [data-lang="gu"] h6 {
+    font-family: var(--font-gujarati);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT MODE — Neutral scale + text colors
+   ═══════════════════════════════════════════════════════════ */
+[data-theme="light"] {
+  /* Swap neutral scale: darks → lights, lights → darks */
+  --color-neutral-950: #faf8f5;
+  --color-neutral-900: #ffffff;
+  --color-neutral-800: #f5f0e8;
+  --color-neutral-700: #e6dccb;
+  --color-neutral-600: #998a78;
+  --color-neutral-500: #78716c;
+  --color-neutral-400: #57534e;
+  --color-neutral-300: #292524;
+  --color-neutral-200: #1f1b18;
+  --color-neutral-100: #1c1917;
+  --color-neutral-50:  #0d0b09;
+
+  /* Keep pure white crisp for true white components */
+  --color-white: #ffffff;
+
+  /* Rich polished gold text on light backgrounds */
+  --color-amber-400: #92400e;
+  --color-amber-500: #854d0e;
+  --color-amber-300: #b45309;
+  --color-amber-200: #78350f;
+  --color-amber-100: #1c1917;
+
+  /* Emerald (WhatsApp button) */
+  --color-emerald-400: #047857;
+}
+
+/* Smooth targeted theme transition for body and surfaces */
+body, nav, header, footer, .card-theme, button, input, select {
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+}
+
+/* Selection Contrast */
+::selection {
+  background: var(--text-gold);
+  color: var(--bg-primary);
+}
+
+[data-theme="light"] ::selection {
+  background: #854d0e;
+  color: #faf8f5;
+}
+
+/* Overlays / modals dark backdrop */
+[data-theme="light"] .bg-black\/40,
+[data-theme="light"] .bg-black\/60 {
+  background-color: rgba(0, 0, 0, 0.4) !important;
+}
+
+/* ─── Animations ──────────────────────────────────────────── */
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(30px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-@theme {
-  --font-display: "Poppins", sans-serif;
-  --font-heading: "Playfair Display", serif;  
-  --font-body: "Lato", sans-serif;           
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-@layer base {
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-heading);
-  }
-  p, span, li {
-    font-family: var(--font-body);
-  }
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ─── Carousel Scroll ────────────────────────────────────── */
+.carousel-scroll {
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.carousel-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── Utility Classes ────────────────────────────────────── */
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.7s ease-out forwards;
+}
+
+.shimmer-bg {
+  background: linear-gradient(90deg, transparent 30%, rgba(160, 125, 78, 0.08) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+  animation: marquee 30s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Section divider ornament */
+.ornament-divider::after {
+  content: "◆";
+  display: block;
+  text-align: center;
+  color: rgba(160, 125, 78, 0.3);
+  font-size: 12px;
+  letter-spacing: 12px;
+  margin-top: 16px;
 }

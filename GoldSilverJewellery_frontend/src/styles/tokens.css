@@ -1,0 +1,102 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   GOLD & SILVER JEWELLERY — DESIGN TOKENS (LIGHT & DARK THEMES)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Color Scheme */
+  color-scheme: dark;
+
+  /* Typography */
+  --font-heading: "Cormorant Garamond", "Playfair Display", Georgia, serif;
+  --font-body: "DM Sans", "Lato", system-ui, sans-serif;
+  --font-gujarati: "Noto Sans Gujarati", "DM Sans", sans-serif;
+
+  /* Neutral Surface & Background Tokens (Dark Mode Default) */
+  --bg-primary: #090807;
+  --bg-surface: #14110e;
+  --bg-surface-hover: #1e1914;
+  --bg-input: #1b1612;
+  --bg-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Border Tokens */
+  --border-color: rgba(160, 125, 78, 0.2);
+  --border-color-hover: rgba(160, 125, 78, 0.5);
+  --border-gold-subtle: rgba(205, 176, 124, 0.3);
+
+  /* Typography Colors */
+  --text-primary: #f5f0eb;
+  --text-secondary: #d4c8b8;
+  --text-muted: #998a78;
+  --text-gold: #cdb07c;
+  --text-gold-bright: #e5cd9c;
+  --text-silver: #cbd5e1;
+
+  /* Brand Accents */
+  --accent-gold-50:  #faf7f2;
+  --accent-gold-100: #f0e6d3;
+  --accent-gold-200: #dfc9a0;
+  --accent-gold-300: #cdb07c;
+  --accent-gold-400: #b8945f;
+  --accent-gold-500: #a07d4e;
+  --accent-gold-600: #886a40;
+
+  --accent-gold-gradient: linear-gradient(135deg, #cdb07c 0%, #a07d4e 40%, #886a40 100%);
+  --accent-gold-btn-gradient: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+
+  /* Status Badges */
+  --badge-gold-bg: rgba(160, 125, 78, 0.15);
+  --badge-gold-text: #cdb07c;
+  --badge-gold-border: rgba(160, 125, 78, 0.35);
+
+  --badge-emerald-bg: rgba(16, 185, 129, 0.15);
+  --badge-emerald-text: #6ee7b7;
+  --badge-emerald-border: rgba(16, 185, 129, 0.35);
+
+  /* Shadows */
+  --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.5);
+  --gold-glow-shadow: 0 4px 20px -2px rgba(205, 176, 124, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LIGHT MODE OVERRIDES — High Contrast Luxury Aesthetics
+   ═══════════════════════════════════════════════════════════════════════════ */
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Neutral Surface & Background Tokens (Light Mode Ivory & White) */
+  --bg-primary: #faf8f5;
+  --bg-surface: #ffffff;
+  --bg-surface-hover: #f5efe6;
+  --bg-input: #fdfbf7;
+  --bg-overlay: rgba(15, 12, 9, 0.4);
+
+  /* Border Tokens */
+  --border-color: #e6dccb;
+  --border-color-hover: #cbb89b;
+  --border-gold-subtle: rgba(133, 77, 14, 0.3);
+
+  /* Typography Colors — High Contrast WCAG AAA */
+  --text-primary: #1c1917;
+  --text-secondary: #292524;
+  --text-muted: #6b635b;
+  --text-gold: #854d0e;
+  --text-gold-bright: #92400e;
+  --text-silver: #475569;
+
+  /* Brand Accents */
+  --accent-gold-gradient: linear-gradient(135deg, #854d0e 0%, #a16207 50%, #713f12 100%);
+  --accent-gold-btn-gradient: linear-gradient(135deg, #b45309 0%, #78350f 100%);
+
+  /* Status Badges */
+  --badge-gold-bg: #fef3c7;
+  --badge-gold-text: #854d0e;
+  --badge-gold-border: #fde68a;
+
+  --badge-emerald-bg: #ecfdf5;
+  --badge-emerald-text: #047857;
+  --badge-emerald-border: #a7f3d0;
+
+  /* Shadows */
+  --card-shadow: 0 8px 25px -4px rgba(133, 77, 14, 0.08);
+  --gold-glow-shadow: 0 4px 16px -2px rgba(133, 77, 14, 0.15);
+}
