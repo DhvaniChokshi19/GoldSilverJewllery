@@ -1,115 +1,98 @@
-import SubCategory     from "../models/subCategory.js";
-import Product         from "../models/Product.js";
-import { cloudinary }  from "../config/cloudinary.js";
+import SubCategoryRepository from "../repositories/SubCategoryRepository.js";
+import ProductRepository from "../repositories/ProductRepository.js";
+import { uploadToCloudinary, deleteFromCloudinary } from "../utils/cloudinaryHelper.js";
+import asyncHandler from "../middleware/asyncHandler.js";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// GET all for a category — admin (uses aggregated counts)
+export const getSubCategoriesByCategoryAdmin = asyncHandler(async (req, res) => {
+  const data = await SubCategoryRepository.getSubCategoriesWithCounts({
+    categoryId: req.params.categoryId,
+  });
+  res.json({ success: true, data });
+});
 
-const uploadToCloudinary = (buffer, folder) =>
-  new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream({ folder }, (err, result) => {
-      if (err) reject(err);
-      else resolve(result);
-    });
-    stream.end(buffer);
+// GET visible for a category — storefront
+export const getSubCategoriesByCategory = asyncHandler(async (req, res) => {
+  const data = await SubCategoryRepository.find(
+    { categoryId: req.params.categoryId, isVisible: true },
+    null,
+    { sort: { order: 1 } }
+  );
+  res.json({ success: true, data });
+});
+
+// CREATE
+export const createSubCategory = asyncHandler(async (req, res) => {
+  const { collectionId, categoryId, name, label, isVisible } = req.body;
+
+  let imageUrl = "";
+  if (req.file) {
+    const result = await uploadToCloudinary(req.file.buffer, "subcategories");
+    imageUrl = result.secure_url;
+  }
+
+  const sub = await SubCategoryRepository.create({
+    collectionId,
+    categoryId,
+    name,
+    label: label || "",
+    imageUrl,
+    isVisible: isVisible !== "false",
   });
 
-const deleteFromCloudinary = async (url) => {
-  if (!url) return;
-  try {
-    const parts  = url.split("/");
-    const file   = parts[parts.length - 1].split(".")[0];
-    const folder = parts[parts.length - 2];
-    await cloudinary.uploader.destroy(`${folder}/${file}`);
-  } catch (err) { console.error("Cloudinary delete error:", err.message); }
-};
+  res.status(201).json({ success: true, data: sub });
+});
 
-// ─── GET all for a category — admin ──────────────────────────────────────────
-export const getSubCategoriesByCategoryAdmin = async (req, res) => {
-  try {
-    const data = await SubCategory.find({ categoryId: req.params.categoryId }).sort({ order: 1 });
-    res.json({ success: true, data });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
-};
+// UPDATE
+export const updateSubCategory = asyncHandler(async (req, res) => {
+  const sub = await SubCategoryRepository.findById(req.params.id);
+  if (!sub) {
+    return res.status(404).json({ success: false, message: "SubCategory not found" });
+  }
 
-// ─── GET visible for a category — storefront ─────────────────────────────────
-export const getSubCategoriesByCategory = async (req, res) => {
-  try {
-    const data = await SubCategory.find({ categoryId: req.params.categoryId, isVisible: true }).sort({ order: 1 });
-    res.json({ success: true, data });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
-};
+  const { collectionId, categoryId, name, label, isVisible } = req.body;
 
-// ─── CREATE ───────────────────────────────────────────────────────────────────
-export const createSubCategory = async (req, res) => {
-  try {
-    const { collectionId, categoryId, name, label, isVisible} = req.body;
-
-    let imageUrl = "";
-    if (req.file) {
-      const result = await uploadToCloudinary(req.file.buffer, "subcategories");
-      imageUrl = result.secure_url;
-    }
-
-    const sub = await SubCategory.create({
-      collectionId, categoryId,
-      name,
-      label:     label     || "",
-      imageUrl,
-      isVisible: isVisible === "false" ? false : true,
-    });
-
-    res.status(201).json({ success: true, data: sub });
-  } catch (err) { res.status(400).json({ success: false, message: err.message }); }
-};
-
-// ─── UPDATE ───────────────────────────────────────────────────────────────────
-export const updateSubCategory = async (req, res) => {
-  try {
-    const sub = await SubCategory.findById(req.params.id);
-    if (!sub) return res.status(404).json({ success: false, message: "Not found" });
-
-    const { collectionId, categoryId, name, label, isVisible} = req.body;
-
-    let imageUrl = sub.imageUrl;
-    if (req.file) {
-      await deleteFromCloudinary(sub.imageUrl);
-      const result = await uploadToCloudinary(req.file.buffer, "subcategories");
-      imageUrl = result.secure_url;
-    }
-
-    const updated = await SubCategory.findByIdAndUpdate(
-      req.params.id,
-      { collectionId, categoryId, name, label: label || "", imageUrl,
-        isVisible: isVisible === "false" ? false : true,
-        },
-      { new: true, runValidators: true }
-    );
-
-    res.json({ success: true, data: updated });
-  } catch (err) { res.status(400).json({ success: false, message: err.message }); }
-};
-
-// ─── TOGGLE visibility ────────────────────────────────────────────────────────
-export const toggleSubCategoryVisibility = async (req, res) => {
-  try {
-    const sub = await SubCategory.findById(req.params.id);
-    if (!sub) return res.status(404).json({ success: false, message: "Not found" });
-    sub.isVisible = !sub.isVisible;
-    await sub.save();
-    res.json({ success: true, data: sub });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
-};
-
-// ─── DELETE — also deletes products under it ──────────────────────────────────
-export const deleteSubCategory = async (req, res) => {
-  try {
-    const sub = await SubCategory.findById(req.params.id);
-    if (!sub) return res.status(404).json({ success: false, message: "Not found" });
-
+  let imageUrl = sub.imageUrl;
+  if (req.file) {
     await deleteFromCloudinary(sub.imageUrl);
-    await Product.deleteMany({ subCategoryId: req.params.id });
-    await sub.deleteOne();
+    const result = await uploadToCloudinary(req.file.buffer, "subcategories");
+    imageUrl = result.secure_url;
+  }
 
-    res.json({ success: true, message: "SubCategory and its products deleted" });
-  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
-};
+  const updated = await SubCategoryRepository.findByIdAndUpdate(req.params.id, {
+    collectionId,
+    categoryId,
+    name,
+    label: label || "",
+    imageUrl,
+    isVisible: isVisible !== "false",
+  });
+
+  res.json({ success: true, data: updated });
+});
+
+// TOGGLE visibility
+export const toggleSubCategoryVisibility = asyncHandler(async (req, res) => {
+  const sub = await SubCategoryRepository.findById(req.params.id);
+  if (!sub) {
+    return res.status(404).json({ success: false, message: "SubCategory not found" });
+  }
+
+  sub.isVisible = !sub.isVisible;
+  await sub.save();
+  res.json({ success: true, data: sub });
+});
+
+// DELETE — also deletes products under it
+export const deleteSubCategory = asyncHandler(async (req, res) => {
+  const sub = await SubCategoryRepository.findById(req.params.id);
+  if (!sub) {
+    return res.status(404).json({ success: false, message: "SubCategory not found" });
+  }
+
+  await deleteFromCloudinary(sub.imageUrl);
+  await ProductRepository.deleteMany({ subCategoryId: req.params.id });
+  await SubCategoryRepository.deleteOne({ _id: req.params.id });
+
+  res.json({ success: true, message: "SubCategory and its products deleted successfully" });
+});

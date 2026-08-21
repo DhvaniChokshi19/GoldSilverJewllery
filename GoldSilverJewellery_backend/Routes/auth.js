@@ -6,8 +6,7 @@ import { OAuth2Client } from "google-auth-library";
 
 const router = express.Router();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-const JWT_SECRET = process.env.JWT_SECRET || "your_secret_key";
+const getJwtSecret = () => process.env.JWT_SECRET || "your_secret_key";
 
 // Register Route
 router.post("/register", async (req, res) => {
@@ -25,7 +24,7 @@ router.post("/register", async (req, res) => {
     if (!mobileRegex.test(mobile)) {
       return res.status(400).json({
         success: false,
-        message: "Please enter a 10 digit number",
+        message: "Please enter a valid 10-digit mobile number",
       });
     }
 
@@ -52,8 +51,8 @@ router.post("/register", async (req, res) => {
     });
     await newUser.save();
 
-    const token = jwt.sign({ id: newUser._id }, JWT_SECRET, {
-      expiresIn: "1h",
+    const token = jwt.sign({ id: newUser._id }, getJwtSecret(), {
+      expiresIn: "7d",
     });
 
     res.status(201).json({
@@ -68,15 +67,10 @@ router.post("/register", async (req, res) => {
     });
   } catch (error) {
     console.error("Registration error:", error);
-
-    console.error("Error occurred at stack:", error.stack);
     res.status(500).json({
       success: false,
       message: "Error registering user",
-      error: {
-        message: error.message,
-        name: error.name,
-      },
+      error: error.message,
     });
   }
 });
@@ -86,7 +80,6 @@ router.post("/login", async (req, res) => {
   try {
     const { mobile, password } = req.body;
 
-    // Validation
     if (!mobile || !password) {
       return res.status(400).json({
         success: false,
@@ -94,7 +87,6 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    // Validate mobile number format
     const mobileRegex = /^[0-9]{10}$/;
     if (!mobileRegex.test(mobile)) {
       return res.status(400).json({
@@ -112,13 +104,14 @@ router.post("/login", async (req, res) => {
     }
 
     if (user.authProvider === "google") {
-  return res.status(400).json({
-    success: false,
-    message: "Please login using Google",
-  });
-}
+      return res.status(400).json({
+        success: false,
+        message: "Please login using Google",
+      });
+    }
 
-    const isPasswordValid = bcrypt.compare(password, user.password);
+    // FIX: added missing await on bcrypt.compare
+    const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
       return res.status(400).json({
@@ -127,8 +120,8 @@ router.post("/login", async (req, res) => {
       });
     }
 
-    const token = jwt.sign({ id: user._id }, JWT_SECRET, {
-      expiresIn: "1h",
+    const token = jwt.sign({ id: user._id }, getJwtSecret(), {
+      expiresIn: "7d",
     });
 
     res.status(200).json({
@@ -142,58 +135,63 @@ router.post("/login", async (req, res) => {
       },
     });
   } catch (error) {
+    console.error("Login error:", error);
     res.status(500).json({
-      success:false,
+      success: false,
       message: "Login error",
-      error: {
-        message: error.message,
-        name: error.name,
-      },
+      error: error.message,
     });
   }
 });
 
-router.post("/google",async(req,res) =>{
-  const {credential} = req.body;
-  try{
-    //verify token
+// Google OAuth Route
+router.post("/google", async (req, res) => {
+  const { credential } = req.body;
+  try {
     const ticket = await client.verifyIdToken({
       idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
-    const { sub:googleId, name, email, picture} = ticket.getPayload();
+    const { sub: googleId, name, email, picture } = ticket.getPayload();
 
-    //find or create user
-    let user= await User.findOne({ $or: [{ googleId }, { email }] });
-    if(!user){
+    let user = await User.findOne({ $or: [{ googleId }, { email }] });
+    if (!user) {
       user = await User.create({
         googleId,
         name,
-        email,  
+        email,
         picture,
-        authProvider:'google',
-      })
+        authProvider: "google",
+      });
     } else if (!user.googleId) {
-  // Link Google account to existing local account
-  user.googleId = googleId;
-  user.authProvider = 'google';
-  user.picture = picture || user.picture;
-  await user.save();
-}
-    //issue JWT
-    const token = jwt.sign({id: user._id}, process.env.JWT_SECRET,{
-      expiresIn: "1d",
+      user.googleId = googleId;
+      user.authProvider = "google";
+      user.picture = picture || user.picture;
+      await user.save();
+    }
+
+    const token = jwt.sign({ id: user._id }, getJwtSecret(), {
+      expiresIn: "7d",
     });
+
     res.json({
-      success:true,
+      success: true,
       token,
-      user: {id: user._id, name: user.name, email:user.email, picture: user.picture},
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        picture: user.picture,
+      },
     });
-  }catch(error){
+  } catch (error) {
+    console.error("Google Auth error:", error);
     res.status(401).json({
-      message:"Google Auth Failed",
+      success: false,
+      message: "Google Auth Failed",
       error: error.message,
-    })
+    });
   }
 });
+
 export default router;
